@@ -33,11 +33,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 關鍵修正：如果 name 未傳入或為空，預設使用 username，避免資料庫 name 欄位不能為 NULL 而報錯 (Column 'name' cannot be null)
-    const safeName = name && name.trim() !== "" ? name : username;
-    const safeGender = gender || null;
-    const safeBirthDate = birth_date || null;
-    const safePhone = phone || null;
+    // 處理空字串與 NULL 防護：
+    // 1. name 為空時自動使用 username 填補，避免 MySQL Column 'name' cannot be null 報錯
+    // 2. gender, birth_date, phone 若為空字串 ""，一律轉為 null，避免 MySQL DATE/VARCHAR 格式錯誤
+    const safeName = typeof name === "string" && name.trim() !== "" ? name : username;
+    const safeGender = typeof gender === "string" && gender.trim() !== "" ? gender : null;
+    const safeBirthDate = typeof birth_date === "string" && birth_date.trim() !== "" ? birth_date : null;
+    const safePhone = typeof phone === "string" && phone.trim() !== "" ? phone : null;
 
     // 檢查帳號是否已存在
     const [existing] = await pool.query<UserRow[]>(
@@ -96,7 +98,7 @@ export async function POST(request: Request) {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
-    console.error(err);
+    console.error("Register Error:", err);
     return NextResponse.json(
       {
         success: false,
