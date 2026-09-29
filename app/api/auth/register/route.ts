@@ -6,21 +6,6 @@ interface UserRow extends RowDataPacket {
   user_id: string;
 }
 
-// 通用的 CORS Headers 設定
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-// 處理 OPTIONS 預檢請求 (CORS)
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -29,17 +14,9 @@ export async function POST(request: Request) {
     if (!username || !password) {
       return NextResponse.json(
         { success: false, message: "請輸入帳號與密碼" },
-        { status: 400, headers: corsHeaders }
+        { status: 400 }
       );
     }
-
-    // 處理空字串與 NULL 防護：
-    // 1. name 為空時自動使用 username 填補，避免 MySQL Column 'name' cannot be null 報錯
-    // 2. gender, birth_date, phone 若為空字串 ""，一律轉為 null，避免 MySQL DATE/VARCHAR 格式錯誤
-    const safeName = typeof name === "string" && name.trim() !== "" ? name : username;
-    const safeGender = typeof gender === "string" && gender.trim() !== "" ? gender : null;
-    const safeBirthDate = typeof birth_date === "string" && birth_date.trim() !== "" ? birth_date : null;
-    const safePhone = typeof phone === "string" && phone.trim() !== "" ? phone : null;
 
     // 檢查帳號是否已存在
     const [existing] = await pool.query<UserRow[]>(
@@ -55,18 +32,15 @@ export async function POST(request: Request) {
         `UPDATE users
          SET password = ?, name = ?, gender = ?, birth_date = ?, phone = ?
          WHERE username = ?`,
-        [password, safeName, safeGender, safeBirthDate, safePhone, username]
+        [password, name || null, gender || null, birth_date || null, phone || null, username]
       );
 
-      return NextResponse.json(
-        {
-          success: true,
-          message: "此帳號已存在,資料已為你更新覆蓋",
-          user_id: userId,
-          overwritten: true,
-        },
-        { status: 200, headers: corsHeaders }
-      );
+      return NextResponse.json({
+        success: true,
+        message: "此帳號已存在,資料已為你更新覆蓋",
+        user_id: userId,
+        overwritten: true,
+      });
     }
 
     // 帳號不存在 → 依現有資料的 user-001 格式,自動產生下一個 user_id
@@ -85,27 +59,20 @@ export async function POST(request: Request) {
     await pool.query(
       `INSERT INTO users (user_id, username, password, name, gender, birth_date, phone)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [newUserId, username, password, safeName, safeGender, safeBirthDate, safePhone]
+      [newUserId, username, password, name || null, gender || null, birth_date || null, phone || null]
     );
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "註冊成功",
-        user_id: newUserId,
-        overwritten: false,
-      },
-      { status: 200, headers: corsHeaders }
-    );
+    return NextResponse.json({
+      success: true,
+      message: "註冊成功",
+      user_id: newUserId,
+      overwritten: false,
+    });
   } catch (err) {
-    console.error("Register Error:", err);
+    console.error(err);
     return NextResponse.json(
-      {
-        success: false,
-        message: "伺服器錯誤",
-        debug: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500, headers: corsHeaders }
+      { success: false, message: "伺服器錯誤" },
+      { status: 500 }
     );
   }
 }

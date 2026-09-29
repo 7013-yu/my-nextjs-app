@@ -15,6 +15,7 @@ try {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: { rejectUnauthorized: false },
+    charset: "utf8mb4", // ENUM 裡有中文選項(男/女/其他),沒指定編碼會在傳輸中壞掉
   });
   console.log("已連線到 Aiven");
 
@@ -39,12 +40,19 @@ try {
     }
 
     await conn.query(
-      `ALTER TABLE users MODIFY COLUMN \`${name}\` ${col.COLUMN_TYPE} NULL DEFAULT NULL`
+      `ALTER TABLE users MODIFY COLUMN \`${name}\` ${col.COLUMN_TYPE} CHARACTER SET utf8mb4 NULL DEFAULT NULL`
     );
     console.log(`${name} (${col.COLUMN_TYPE}):已改為允許空白`);
   }
 
   console.log("完成");
+
+  // 順便確認一下 gender 欄位目前的定義,方便肉眼檢查有沒有壞掉的選項值
+  const [check] = await conn.query(
+    `SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'gender'`
+  );
+  console.log("gender 欄位目前定義:", check[0]?.COLUMN_TYPE);
 } catch (err) {
   console.error("修改失敗:", err.message);
   process.exitCode = 1;

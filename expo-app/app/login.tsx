@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,44 +16,38 @@ export default function LoginScreen() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 登入成功後回到設定頁 (清空歷史堆疊)
+  // 登入成功後回到設定頁(先把登入/註冊頁從導覽堆疊清掉)
   const goToSettings = () => {
     if (router.canDismiss()) router.dismissAll();
     router.replace("/(tabs)/settings");
   };
 
   const handleLogin = async () => {
-    setMessage("");
-    const account = username.trim();
+    setError("");
 
-    if (!account) {
-      setMessage("請輸入帳號");
-      return;
-    }
-    if (!password) {
-      setMessage("請輸入密碼");
+    if (!username.trim() || !password) {
+      setError("請輸入帳號與密碼");
       return;
     }
 
     setLoading(true);
     try {
       const data = await postJson("/api/auth/login", {
-        username: account,
+        username: username.trim(),
         password,
       });
 
       if (data.success) {
         await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        setMessage("登入成功！");
-        setTimeout(() => goToSettings(), 500);
+        goToSettings();
       } else {
-        setMessage(data.message || "登入失敗，請檢查帳號密碼");
+        setError(data.message || "登入失敗,請再試一次");
       }
     } catch (err) {
-      setMessage(describeNetworkError(err));
+      setError(describeNetworkError(err));
     } finally {
       setLoading(false);
     }
@@ -73,8 +68,8 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brandRow}>
-          <Text style={styles.brandIcon}>💊</Text>
-          <Text style={styles.brandText}>MyTherapy</Text>
+          <Text style={styles.brandIcon}>🩺</Text>
+          <Text style={styles.brandText}>My Doctor</Text>
         </View>
         <Text style={styles.subtitle}>使用現有帳號登入。</Text>
 
@@ -98,26 +93,29 @@ export default function LoginScreen() {
           style={styles.input}
         />
 
-        {message ? <Text style={styles.message}>{message}</Text> : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity
           style={[styles.primaryButton, loading && styles.disabled]}
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={styles.primaryText}>
-            {loading ? "登入中..." : "登入"}
-          </Text>
+          <Text style={styles.primaryText}>{loading ? "登入中..." : "登入"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.forgotButton}
-          onPress={() => {
-            /* 忘記密碼邏輯或頁面導向 */
-          }}
+          style={styles.linkButton}
+          onPress={() => Alert.alert("忘記密碼", "此功能尚未開放。")}
         >
-          <Text style={styles.forgotText}>忘記密碼</Text>
+          <Text style={styles.linkText}>忘記密碼</Text>
         </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerLabel}>還沒有帳戶?</Text>
+          <TouchableOpacity onPress={() => router.push("/register")}>
+            <Text style={styles.linkText}>建立新帳戶</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </>
   );
@@ -137,24 +135,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
   },
   brandIcon: {
-    fontSize: 26,
+    fontSize: 30,
   },
   brandText: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#e31243",
+    color: "#d81f3f",
   },
   subtitle: {
     textAlign: "center",
     fontSize: 16,
-    lineHeight: 24,
     color: "#5c5250",
     marginTop: 20,
     marginBottom: 28,
-    paddingHorizontal: 8,
   },
   input: {
     height: 56,
@@ -165,20 +161,19 @@ const styles = StyleSheet.create({
     color: "#2b1512",
     marginBottom: 14,
   },
-  message: {
+  error: {
     color: "#c62828",
     fontSize: 14,
     marginBottom: 12,
     marginHorizontal: 4,
-    textAlign: "center",
   },
   primaryButton: {
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#220f0d",
+    backgroundColor: "#2b1512",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 6,
   },
   primaryText: {
     color: "#ffffff",
@@ -188,13 +183,22 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.6,
   },
-  forgotButton: {
-    marginTop: 24,
+  linkButton: {
     alignItems: "center",
+    paddingVertical: 20,
   },
-  forgotText: {
-    color: "#2b1512",
+  linkText: {
+    color: "#8a3a12",
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: "500",
+  },
+  footer: {
+    alignItems: "center",
+    gap: 6,
+    marginTop: 12,
+  },
+  footerLabel: {
+    color: "#5c5250",
+    fontSize: 16,
   },
 });

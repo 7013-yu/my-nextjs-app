@@ -1,4 +1,4 @@
-// ⚠️ 之後部署到 Vercel 或換成 ngrok 網址,只要改這一行,登入/註冊兩頁都會一起生效
+// ⚠️ 已改成 Vercel 部署網址,不再需要區域網路 IP,任何網路都能連
 export const API_BASE_URL = "https://my-nextjs-app-coral-zeta.vercel.app";
 
 // 送出 JSON 請求,10 秒沒回應就中斷,避免畫面卡在載入中
