@@ -1,7 +1,6 @@
 // 用法(在 Next.js 專案根目錄執行):
-// node --env-file=.env.aiven scripts/import-to-aiven.mjs <匯出的.sql檔路徑>
-// 若上次匯入失敗、留下半成品資料表,可加 --reset 先清空目標資料庫再匯入:
 // node --env-file=.env.aiven scripts/import-to-aiven.mjs <匯出的.sql檔路徑> --reset
+// --reset 會先清空目標資料庫裡所有資料表再匯入(雲端資料庫上的現有資料會被刪掉)
 
 import fs from "node:fs";
 import mysql from "mysql2/promise";
@@ -13,7 +12,7 @@ const sqlFile = args.find((a) => !a.startsWith("--"));
 if (!sqlFile) {
   console.error("請提供 .sql 檔案路徑,例如:");
   console.error(
-    "node --env-file=.env.aiven scripts/import-to-aiven.mjs C:\\Users\\judy9\\Downloads\\medication_db.sql"
+    "node --env-file=.env.aiven scripts/import-to-aiven.mjs C:\\Users\\judy9\\Downloads\\medication_db.sql --reset"
   );
   process.exit(1);
 }
@@ -38,9 +37,13 @@ try {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: { rejectUnauthorized: false }, // Aiven 要求加密連線
+    charset: "utf8mb4", // 沒有這行,檔案裡的中文會被存成 ?
     multipleStatements: true,
   });
   console.log("已連線到 Aiven");
+
+  // 明確告訴伺服器這次連線用 utf8mb4 傳輸中文
+  await conn.query("SET NAMES utf8mb4");
 
   if (reset) {
     const [existing] = await conn.query("SHOW TABLES");
@@ -72,6 +75,12 @@ try {
 
   const [users] = await conn.query("SELECT COUNT(*) AS n FROM users");
   console.log(`users 資料表目前有 ${users[0].n} 筆資料`);
+
+  // 列出使用者資料(不含密碼),肉眼確認中文有沒有變成問號
+  const [sample] = await conn.query(
+    "SELECT user_id, username, name, gender FROM users LIMIT 5"
+  );
+  console.table(sample);
 } catch (err) {
   console.error("匯入失敗:", err.message);
   process.exitCode = 1;

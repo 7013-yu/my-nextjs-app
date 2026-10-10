@@ -6,6 +6,7 @@ interface UserRow extends RowDataPacket {
   user_id: string;
   username: string;
   name: string | null;
+  nickname: string | null;
   gender: string | null;
   birth_date: string | null;
   phone: string | null;
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const [rows] = await pool.query<UserRow[]>(
-      `SELECT user_id, username, name, gender, birth_date, phone
+      `SELECT user_id, username, name, nickname, gender, birth_date, phone
        FROM users WHERE username = ? AND password = ?`,
       [username, password]
     );

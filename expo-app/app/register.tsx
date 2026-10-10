@@ -27,8 +27,7 @@ export default function RegisterScreen() {
   };
 
   const goToLogin = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/login");
+    router.replace("/login");
   };
 
   const handleRegister = async () => {

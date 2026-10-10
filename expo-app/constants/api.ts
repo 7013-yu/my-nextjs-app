@@ -2,9 +2,10 @@
 export const API_BASE_URL = "https://my-nextjs-app-coral-zeta.vercel.app";
 
 // 送出 JSON 請求,10 秒沒回應就中斷,避免畫面卡在載入中
-export async function postJson<T = any>(
+async function requestJson<T>(
+  method: "GET" | "POST" | "PUT",
   path: string,
-  body: unknown,
+  body?: unknown,
   timeoutMs = 10000
 ): Promise<T> {
   const controller = new AbortController();
@@ -12,15 +13,27 @@ export async function postJson<T = any>(
 
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      method,
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal,
     });
     return (await res.json()) as T;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+export function getJson<T = any>(path: string, timeoutMs?: number) {
+  return requestJson<T>("GET", path, undefined, timeoutMs);
+}
+
+export function postJson<T = any>(path: string, body: unknown, timeoutMs?: number) {
+  return requestJson<T>("POST", path, body, timeoutMs);
+}
+
+export function putJson<T = any>(path: string, body: unknown, timeoutMs?: number) {
+  return requestJson<T>("PUT", path, body, timeoutMs);
 }
 
 export function describeNetworkError(err: unknown): string {
