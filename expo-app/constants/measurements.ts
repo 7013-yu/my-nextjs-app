@@ -1,0 +1,76 @@
+// 測量項目清單。目前先放在程式裡,之後可以改成從資料庫的 measurement_types 讀取。
+export interface Measurement {
+  id: string;
+  name: string;
+  unit?: string; // 單位,還不確定的項目先不填
+}
+ 
+// 常見測量
+export const COMMON_MEASUREMENTS: Measurement[] = [
+  { id: "blood-pressure", name: "血壓", unit: "毫米汞柱" },
+  { id: "resting-heart-rate", name: "靜息心率", unit: "次/分鐘" },
+  { id: "weight", name: "體重", unit: "公斤" },
+  { id: "glucose-before-meal", name: "血糖 (餐前)", unit: "mg/dL" },
+  { id: "glucose-after-meal", name: "血糖 (餐後)", unit: "mg/dL" },
+  { id: "body-temperature", name: "體溫", unit: "°C" },
+];
+ 
+// 所有測量(照參考畫面截圖裡看得到的項目,順序也相同)
+export const ALL_MEASUREMENTS: Measurement[] = [
+  { id: "cd4", name: "CD4細胞數" },
+  { id: "inr", name: "INR值" },
+  { id: "ggt", name: "γ-谷氨酰轉移酶 (GGT)" },
+  { id: "ft3", name: "三碘甲狀腺原氨酸 (fT3)" },
+  { id: "alat", name: "丙氨酸氨基轉移酶 (ALAT)" },
+  { id: "lactic-acid", name: "乳酸" },
+  { id: "ldl", name: "低密度脂蛋白 LDL" },
+  { id: "tsh", name: "促甲狀腺激素 (TSH)" },
+  { id: "psa", name: "前列腺特異性抗原" },
+  { id: "respiratory-volume", name: "呼吸量" },
+  { id: "respiratory-rate", name: "呼吸頻率" },
+  { id: "pefr", name: "呼氣峰流速 (PEFR)" },
+  { id: "bmr", name: "基礎代謝率 (BMR)" },
+  { id: "thigh-circumference", name: "大腿圍" },
+  { id: "nicotine", name: "尼古丁" },
+  { id: "urine-glucose", name: "尿糖" },
+  { id: "uric-acid", name: "尿酸" },
+  { id: "anti-xa", name: "抗Xa因子活性" },
+  { id: "triglycerides", name: "甘油三酯" },
+  { id: "ft4", name: "甲狀腺素 (fT4)" },
+  { id: "viral-load", name: "病毒載量" },
+  { id: "albumin", name: "白蛋白" },
+  { id: "asat", name: "穀草轉氨酶 (ASAT)" },
+  { id: "hba1c", name: "糖化血紅蛋白 (HbA1c)" },
+  { id: "hba1", name: "糖化血紅蛋白 HbA1" },
+  { id: "vitamin-d", name: "維他命D" },
+  { id: "creatine-kinase", name: "肌酸激酶" },
+  { id: "creatinine", name: "肌酸酐值" },
+  { id: "vital-capacity", name: "肺活量" },
+  { id: "chest-circumference", name: "胸圍" },
+  { id: "Lipoprotein (a)", name: "脂蛋白 (a)" },
+  { id: "gfr", name: "腎小球濾過濾 (GFR)" },
+  { id: "waistline", name: "腰圍" },
+  { id: "cholesterol", name: "膽固醇" },
+  { id: "bilirubin", name: "膽紅素" },
+  { id: "arm-circumference", name: "臂圍" },
+  { id: "glucose", name: "葡萄糖" },
+  { id: "blood-pressure", name: "血壓" },
+  { id: "blood-oxygen-saturation", name: "血氧飽和度" },
+  { id: "blood-separation", name: "血液分離術" },
+  { id: "before-meals", name: "血糖 (餐前)" },
+  { id: "after-meals", name: "血糖 (餐後)" },
+  { id: "body-fat-percentage", name: "身體脂肪百分比" },
+  { id: "apo-b", name: "載脂蛋白B (Apo B)" },
+  { id: "alcohol-content", name: "酒精含量" },
+  { id: "na", name: "納" },
+  { id: "calcium", name: "鈣" },
+  { id: "lithium-level", name: "鋰水平" },
+  { id: "ferritin", name: "鐵蛋白" },
+  { id: "resting-heart-rate", name: "靜息心率" },
+  { id: "bone-density", name: "骨質密度" },
+  { id: "body-water-percentage", name: "體水分率" },
+  { id: "body-temperature", name: "體溫" },
+  { id: "weight", name: "體重" },
+  { id: "hdl", name: "高密度脂蛋白 HDL" },
+  { id: "alkaline-phosphatase", name: "鹼性磷酸酶" },
+];

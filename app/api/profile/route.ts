@@ -21,6 +21,12 @@ function bad(message: string, status = 400) {
   return NextResponse.json({ success: false, message }, { status });
 }
 
+// 資料表用 big5 時,big5 存不下的字(表情符號、簡體字、少數罕見字)會讓寫入失敗(錯誤碼 1366)
+function isUnsupportedCharError(err: unknown) {
+  const e = err as { errno?: number; code?: string } | null;
+  return e?.errno === 1366 || e?.code === "ER_TRUNCATED_WRONG_VALUE_FOR_FIELD";
+}
+
 // 文字欄位:空字串視為沒填(存成 NULL);型別不對或太長回傳 undefined 代表不合法
 function textOrNull(value: unknown, max: number): string | null | undefined {
   if (value === null || value === undefined) return null;
@@ -137,6 +143,11 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true, message: "已儲存" });
   } catch (err) {
+    if (isUnsupportedCharError(err)) {
+      return bad(
+        "暱稱、國家或郵政編碼含有資料庫不支援的字元(例如表情符號、簡體字或罕見字),請改用一般的繁體中文或英數字"
+      );
+    }
     console.error(err);
     return bad("伺服器錯誤", 500);
   }

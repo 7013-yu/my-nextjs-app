@@ -67,6 +67,15 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
+// 只留數字和一個小數點(逗號當小數點)
+function cleanNumber(text: string): string {
+  const t = text.replace(",", ".").replace(/[^0-9.]/g, "");
+  const firstDot = t.indexOf(".");
+  return firstDot === -1
+    ? t
+    : t.slice(0, firstDot + 1) + t.slice(firstDot + 1).replace(/\./g, "");
+}
+
 // 體重目前只存在這支手機上,用使用者代碼當 key
 const weightKey = (userId: string) => `profile_weight_kg:${userId}`;
 
@@ -150,6 +159,80 @@ function Avatar() {
       <View style={styles.avatarHead} />
       <View style={styles.avatarBody} />
     </View>
+  );
+}
+
+// ---------- 數字輸入列(體重、身高) ----------
+// 點整列會跳出輸入視窗(輸入框不放在可點擊的列裡面,避免 iOS 上點不到輸入框)
+interface NumberRowProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  unitLabel: string;
+}
+
+function NumberRow({ label, value, onChange, unitLabel }: NumberRowProps) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const openDialog = () => {
+    setDraft(value);
+    setOpen(true);
+  };
+
+  const confirm = () => {
+    onChange(draft.trim());
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <TouchableOpacity style={styles.row} onPress={openDialog}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <View style={styles.valueGroup}>
+          <Text style={[styles.rowValue, !value && styles.placeholderValue]}>
+            {value || "0"}
+          </Text>
+          <Text style={styles.rowValue}>{unitLabel}</Text>
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <View style={styles.dialogRoot}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.sheetTitle}>{label}</Text>
+            <View style={styles.dialogInputRow}>
+              <TextInput
+                value={draft}
+                onChangeText={(t) => setDraft(cleanNumber(t))}
+                placeholder="0"
+                placeholderTextColor="#c9b8b0"
+                keyboardType="decimal-pad"
+                autoFocus
+                selectTextOnFocus
+                maxLength={6}
+                style={styles.dialogInput}
+              />
+              <Text style={styles.dialogUnit}>{unitLabel}</Text>
+            </View>
+            <View style={styles.dialogButtons}>
+              <TouchableOpacity style={styles.dialogCancel} onPress={() => setOpen(false)}>
+                <Text style={styles.dialogCancelText}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.dialogOk} onPress={confirm}>
+                <Text style={styles.dialogOkText}>確定</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -371,7 +454,6 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets
         >
           <View style={styles.avatarWrap}>
             <Avatar />
@@ -409,37 +491,19 @@ export default function ProfileScreen() {
 
           <SelectRow label="單位偏好" options={UNIT_OPTIONS} value={unit} onChange={changeUnit} />
 
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>體重</Text>
-            <View style={styles.inputWithUnit}>
-              <TextInput
-                value={weightText}
-                onChangeText={setWeightText}
-                placeholder="0"
-                placeholderTextColor="#c9b8b0"
-                keyboardType="decimal-pad"
-                maxLength={6}
-                style={styles.numberInput}
-              />
-              <Text style={styles.rowValue}>{unit === "metric" ? "公斤" : "磅"}</Text>
-            </View>
-          </View>
+          <NumberRow
+            label="體重"
+            value={weightText}
+            onChange={setWeightText}
+            unitLabel={unit === "metric" ? "公斤" : "磅"}
+          />
 
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>身高</Text>
-            <View style={styles.inputWithUnit}>
-              <TextInput
-                value={heightText}
-                onChangeText={setHeightText}
-                placeholder="0"
-                placeholderTextColor="#c9b8b0"
-                keyboardType="decimal-pad"
-                maxLength={6}
-                style={styles.numberInput}
-              />
-              <Text style={styles.rowValue}>{unit === "metric" ? "公分" : "英吋"}</Text>
-            </View>
-          </View>
+          <NumberRow
+            label="身高"
+            value={heightText}
+            onChange={setHeightText}
+            unitLabel={unit === "metric" ? "公分" : "英吋"}
+          />
 
           <View style={styles.row}>
             <Text style={styles.bmiLabel}>BMI</Text>
@@ -592,17 +656,76 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: BROWN,
   },
-  inputWithUnit: {
+  valueGroup: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
-  numberInput: {
-    minWidth: 70,
-    textAlign: "right",
+  placeholderValue: {
+    color: "#c9b8b0",
+  },
+  dialogRoot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingTop: 140,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  dialog: {
+    width: "85%",
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+  },
+  dialogInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginVertical: 18,
+  },
+  dialogInput: {
+    minWidth: 130,
+    textAlign: "center",
+    fontSize: 32,
+    color: BROWN,
+    borderBottomWidth: 1.5,
+    borderBottomColor: BROWN,
+    paddingVertical: 6,
+  },
+  dialogUnit: {
     fontSize: 20,
     color: BROWN,
-    padding: 0,
+  },
+  dialogButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  dialogCancel: {
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#f1ebe8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dialogCancelText: {
+    fontSize: 18,
+    color: INK,
+  },
+  dialogOk: {
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: INK,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dialogOkText: {
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "600",
   },
   bmiLabel: {
     fontSize: 20,

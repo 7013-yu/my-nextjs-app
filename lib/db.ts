@@ -9,6 +9,8 @@ const pool = mysql.createPool({
   // 雲端資料庫(Aiven)要求加密連線,.env 裡設 DB_SSL=true 就會啟用
   ssl:
     process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+  // 連線編碼:就算資料表是 big5 也維持 utf8mb4,伺服器會自動轉換
+  charset: "utf8mb4",
   waitForConnections: true,
   connectionLimit: 5, // 部署後每個函式實例各有一組連線,數量抓小一點避免佔滿
 });
