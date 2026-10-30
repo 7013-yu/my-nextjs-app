@@ -24,7 +24,6 @@ const SECTIONS: Section[] = [
   { key: "medication", title: "藥物", icon: "💊", tileColor: "#ece6ff" },
   { key: "measurement", title: "測量", icon: "⚖️", tileColor: "#e6e9ff" },
   { key: "activity", title: "活動", icon: "🏃", tileColor: "#fde4dc" },
-  { key: "mood", title: "情緒和症狀", icon: "🙂", tileColor: "#fff3c9" },
 ];
 
 // 還沒做的功能先跳出提示,不讓按鈕沒反應
@@ -83,7 +82,7 @@ export default function TreatmentScreen() {
         </View>
       )}
 
-      {/* 四個分類 */}
+      {/* 三個分類 */}
       {SECTIONS.map((section) => {
         const isCollapsed = !!collapsed[section.key];
         return (

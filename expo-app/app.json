@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "expo-app",
+    "name": "藥健康",
     "slug": "expo-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,11 @@
     "scheme": "expoapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
-    },
+     "supportsTablet": true,
+     "bundleIdentifier": "com.qyuu.mydoctor"
+   },
     "android": {
+      "package": "com.qyuu.mydoctor",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -45,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cbd1eafc-a010-4588-bfad-20b08e0b1bb9"
+      }
+    },
+    "owner": "my-medication-app"
   }
 }
